@@ -3,9 +3,9 @@ const pool = require("../../config/database");
 module.exports = {
     create:(data, callback) => {
         pool.query(
-            `INSERT INTO REGISTRATION(firstname, lastname, gender, email, password, number)
-            values(?,?,?,?,?,?)`,
-            [
+            `INSERT INTO REGISTRATION(id,firstname, lastname, gender, email, password, number)
+            values(?,?,?,?,?,?,?)`,
+            [   data.id,
                 data.first_name,
                 data.last_name,
                 data.gender,
