@@ -4,8 +4,10 @@ const {
   getUserById,
   updateUser,
   deleteUser,
+  getUserByUserEmail,
 } = require("./user.service");
-const { genSaltSync, hashSync } = require("bcrypt");
+const { genSaltSync, hashSync, compareSync } = require("bcrypt");
+const { sign } = require("jsonwebtoken");
 module.exports = {
   createUser: (req, res) => {
     const body = req.body;
@@ -39,7 +41,7 @@ module.exports = {
         });
       }
       return res.json({
-        sucess: 1,
+        success: 1,
         data: results,
       });
     });
@@ -65,6 +67,12 @@ module.exports = {
         console.log(err);
         return;
       }
+      if (!results) {
+        return res.json({
+          sucess: 0,
+          message: "failed to update the user!",
+        });
+      }
       return res.json({
         success: 1,
         message: "updated user sucessfully",
@@ -88,6 +96,37 @@ module.exports = {
         sucess: 1,
         message: "user deleted sucessfully",
       });
+    });
+  },
+  login: (req, res) => {
+    const body = req.body;
+    getUserByUserEmail(body.email, (err, results) => {
+      if (err) {
+        console.log(err);
+      }
+      if (!results) {
+        return res.json({
+          sucess: 0,
+          message: "Invalid email or password",
+        });
+      }
+      const result = compareSync(body.password, results.password);
+      if (result) {
+        results.password = undefined;
+        const jsontoken = sign({ result: results }, "qwe1234", {
+          expiresIn: "1h",
+        });
+        return res.json({
+          sucess: 1,
+          message: "Login sucessful",
+          token: jsontoken,
+        });
+      } else {
+        return res.json({
+          sucess: 0,
+          message: "Invalid email or password",
+        });
+      }
     });
   },
 };
