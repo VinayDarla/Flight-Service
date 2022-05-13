@@ -1,0 +1,20 @@
+admin: Venky
+password: vd789
+
+//users booking table
+CREATE TABLE `users`.`users_data` (
+    `name` VARCHAR(45) NOT NULL,
+    `email` VARCHAR(45) NULL,
+    `round_trip` VARCHAR(45) NULL,
+    `passengerDetails` JSON NULL,
+    `seatNum` VARCHAR(45) NULL,
+    `meals` VARCHAR(45) NULL,
+    PRIMARY KEY (`name`));
+
+
+//users users_data
+CREATE TABLE `users`.`users_data` (
+  `name` VARCHAR(45) NOT NULL,
+  `email` VARCHAR(45) NULL,
+  `password` VARCHAR(200) NULL,
+  PRIMARY KEY (`name`));
