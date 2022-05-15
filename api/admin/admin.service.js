@@ -40,9 +40,7 @@ module.exports = {
     );
   },
 
-  //admin logout------
-
-
+  
 
   // add airline
   airlineRegister: (data,callback) =>{
@@ -62,20 +60,6 @@ module.exports = {
       }
     )
   },
-
-  //read status of airline
-  // airlineStatus:(data,callback)=>{
-  //   pool.query(
-  //     `SELECT status FROM airlines_data WHERE airlineName=?`,
-  //     [data],
-  //     (error,results)=>{
-  //       if(error)
-  //       return callback(error);
-        
-  //       return callback(null,results)
-  //     }
-  //   );
-  // },
 
     //block an airline
   airlineBlock: (data, callback) =>{
@@ -169,24 +153,5 @@ module.exports = {
 
     //not giving callback
   }
-
-
-
-  //optionaal: delete user 
-  // deleteUser: (data, callBack) => {
-  //   pool.query(
-  //     `delete from registration where id = ?`,
-  //     [data.id],
-  //     (error, results, fields) => {
-  //       if (error) {
-  //         return callBack(error);
-  //       }
-  //       return callBack(null, results[0]);
-  //     }
-  //   );
-  // }
-
-
-
   
 };

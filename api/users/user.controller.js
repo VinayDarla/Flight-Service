@@ -9,21 +9,25 @@ const {
   checkSeatNumberStatus,
 
   ticketDataByPNR,
-  userBookingHistory
+  userBookingHistory,
+  cancelTicket,
+  
 } = require("./user.service");
 
 //check for "body-parser usage"
 var rn = require('random-number');
+
 const { genSaltSync, hashSync, compareSync } = require("bcrypt");
 const { sign } = require("jsonwebtoken");
+
 
 module.exports = {
   
   //new user registration
   newUser: (req, res) => {
     const body = req.body;
-    // const salt = genSaltSync(10);
-    // body.password = hashSync(body.password, salt);
+    const salt = genSaltSync(10);
+    body.password = hashSync(body.password, salt);
 
     newUser(body, (err, results) => {
       if (err) {
@@ -41,35 +45,44 @@ module.exports = {
   },
 
   //user login
-  login: (req, res) => {
+  userLogin: (req, res) => 
+  {
     const body = req.body;
+
     getUserByEmail(body.email, (err, results) => {
-      if (err) {
-        console.log(err);
-      }
-      if (!results) {
-        return res.json({
-          sucess: 0,
-          message: "Invalid email or password",
-        });
-      }
-      const result = compareSync(body.password, results.password);
-      if (result) {
-        results.password = undefined;
-        const jsontoken = sign({ result: results }, "qwe1234", {
-          expiresIn: "1h",
-        });
-        return res.json({
-          sucess: 1,
-          message: "Login sucessful",
-          token: jsontoken,
-        });
-      } else {
-        return res.json({
-          sucess: 0,
-          message: "Invalid email or password",
-        });
-      }
+          if (err) {
+            console.log(err);
+          }
+          if (!results) {
+            return res.json({
+              sucess: 0,
+              message: "Invalid email or password",
+            });
+          }
+          const result = compareSync(body.password, results.password);
+            if (result) 
+            {
+                results.password = undefined;
+
+                //json token creation
+                const jsontoken = sign({ result: results, role:"User" }, process.env.JWT_ALGO, {
+                  expiresIn: "20m",
+                });
+                
+                return res.json({
+                  sucess: 1,
+                  message: "Login sucessful",
+                  token: jsontoken,
+                });
+
+            } 
+            else 
+            {
+                return res.json({
+                  sucess: 0,
+                  message: "Invalid email or password",
+                });
+            }
     });
   },
 
@@ -99,14 +112,6 @@ module.exports = {
               message:"No flights are found"
             })
           }
-            //pnr testing
-                var gen = rn.generator(
-                {
-                  min:  0,
-                  max:  1000000,
-                  integer: true
-                })
-                console.log("line 106 pnr",gen());
           
           return res.status(200).json({
           success: 1,
@@ -183,24 +188,35 @@ module.exports = {
           result_data[0].startDate == body.startDate)
           // check meals condition
         {
-              
+                //storing flight travel time details
                 body.startTime = result_data[0].startTime;
+                body.endDate = result_data[0].endDate;
                 body.endTime = result_data[0].endTime;
 
-                body.passengerDetails = JSON.stringify(body.passengerDetails);
-                body.seatNum = JSON.stringify(body.seatNum);
-
-                //console.log("line 181",body.seatNum);
-
                 //checking seat numbers are available or not
-                checkSeatNumberStatus(body.seatNum, (err,results)=>{
+                checkSeatNumberStatus(body.seatNum, (err,count,seatsNotAvailable)=>{
                   if(err){
                     console.log(err);
                   }
                   //if "results" has "null" value
-                  if(results.length==0)
+                  if(count==0)
                   {
                     console.log("Selected seats are available. Please proceed to checkout!")
+                     
+                    //pnr generation
+                    var gen = rn.generator(
+                    {
+                          min:  0,
+                          max:  1000000,
+                          integer: true
+                    })
+                        let pnr = gen();
+                        //passing pnr to body
+                        body.pnr = pnr;
+
+                        body.passengerDetails = JSON.stringify(body.passengerDetails);
+                        body.seatNum = JSON.stringify(body.seatNum);
+
                         //calling this method
                         bookFlightById(body, (err,results)=>{
                             if(err){
@@ -223,10 +239,11 @@ module.exports = {
                   //if "results" have value means given "seats" are already booked
                   else
                   {
-                    //console.log(results)
+                    
                     return res.json({
                       success:0,
-                      message:"Given seat numbers are booked. Please select other seats!"
+                      message:"Given seat numbers are booked. Please select other seats!",
+                      seatsNotAvailable:seatsNotAvailable
                     })
                   }
                   
@@ -245,67 +262,123 @@ module.exports = {
 
 
 
-ticketDataByPNR: (req,res)=>{
+  ticketDataByPNR: (req,res)=>{
 
-  const body = req.params.pnr;
+    const body = req.params.pnr;
+    //console.log("line 255",body)
 
-  ticketDataByPNR(body, (err,results)=>{
-    if(err){
-      return res.json({
-        success:0,
-        message:"Connection Errror"
-      })
-    }
-    if(!results){
-      return res.json({
-        success:0,
-        message:"Enter valid PNR number"
-      })
-    }
-    else{
-      results.passengerDetails = JSON.parse(results.passengerDetails)
-      results.seatNum = JSON.parse(results.seatNum)
-      
-      return res.json({
-        success:1,
-        data:results
-      })
-    }
-  })
-},
-
-
-
-userBookingHistory:(req,res)=>{
-  const body = req.params.email;
-
-  userBookingHistory(body, (err,results)=>{
-    if(err)
-    {
-      console.log("line 225", err);
-      return res.json({
-        success:0,
-        message:"Errror"
-      })
-    }
-      else
-      {
-        results.forEach(element => {
-          //parsing the "JSOn object"
-          element.seatNum=JSON.parse(element.seatNum)
-
-          element.passengerDetails=JSON.parse(element.passengerDetails)
-        });
+    ticketDataByPNR(body, (err,results)=>{
+      if(err){
+        return res.json({
+          success:0,
+          message:"Connection Errror"
+        })
+      }
+      if(!results){
+        return res.json({
+          success:0,
+          message:"Enter valid PNR number"
+        })
+      }
+      else{
+        results.passengerDetails = JSON.parse(results.passengerDetails)
+        results.seatNum = JSON.parse(results.seatNum)
         
-
         return res.json({
           success:1,
           data:results
         })
-
       }
+    })
+  },
+
+
+
+  userBookingHistory:(req,res)=>{
+    const body = req.params.email;
+
+    userBookingHistory(body, (err,results)=>{
+      if(err)
+      {
+        console.log("line 225", err);
+        return res.json({
+          success:0,
+          message:"Errror"
+        })
+      }
+        else
+        {
+          results.forEach(element => {
+            //parsing the "JSOn object"
+            element.seatNum=JSON.parse(element.seatNum)
+
+            element.passengerDetails=JSON.parse(element.passengerDetails)
+          });
+          
+
+          return res.json({
+            success:1,
+            data:results
+          })
+
+        }
+      
+    })
+  },
+
+  //cancel ticket
+  cancelTicket:(req,res)=>{
+    const body = req.params.pnr;
+
+        //using this function to get details of ticket
+        ticketDataByPNR(body, (err,results)=>
+        {
+            if(err){
+            console.log(err);
+            }
+            if(!results){
+              return res.json({
+                success:0,
+                message:"Enter valid PNR number"
+              })
+            }
+            else
+            {
+                  const data = results;
+
+                      //calling "cancelTicket" function now..
+                      cancelTicket(data, (err,results)=>
+                      {
+                        
+                        if(err)
+                        {
+                          console.log(err);
+                            return res.json({
+                              success:0,
+                              message:"Errror"
+                            })
+                        }
+                        if(!results){
+                            return res.json({
+                              success:0,
+                              message:"Date value comparison went wrong"
+                            })
+          
+                        }
+                        else{
+                          return res.json({
+                            success:1,
+                            message:"Ticket is cancelled",
+                            data:results
+                          })
+                        }
+
+                      })
+                    
+              
+            }
+        })
     
-  })
-},
-  
-};
+  }
+    
+  };

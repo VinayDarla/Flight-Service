@@ -1,52 +1,70 @@
 const {
+
     createAdmin,
-    login,
-    //logout function
+    adminLogin,
+    
     airlineRegister,
     airlineBlock,
+
     addFlight,
     scheduleFlight
    
   } = require("./admin.controller");
 
+
 const {
+  
     newUser,
-    //login,
+    userLogin,
+
     getFlights,
     bookFlightById,
+
     ticketDataByPNR,
-    userBookingHistory
+    userBookingHistory,
+    cancelTicket
+
   } = require("../users/user.controller");
+
+const {checkAdminToken,checkUserToken} = require('../../auth/verifyAdminToken');
+
+
 
 
 const router = require("express").Router();
 
+
 //admin routes
-router.post("/admin" , createAdmin);
+router.post("/admin" , checkAdminToken, createAdmin);
 
-router.post("/admin/login",login);
+router.post("/admin/login", adminLogin);
 
-//logout route
-//router.post("/admin/logout", );
 
-router.post("/airline/register", airlineRegister);
+//routes related to Airline
+router.post("/airline/register", checkAdminToken, airlineRegister);
 
-router.patch("/airline/block", airlineBlock);
+router.patch("/airline/block", checkAdminToken,airlineBlock);
 
-router.post("/airline/inventory/add", addFlight);
+router.post("/airline/inventory/add", checkAdminToken, addFlight);
 
-router.patch("/airline/inventory/update", scheduleFlight);
+router.patch("/airline/inventory/update", checkAdminToken, scheduleFlight);
+
 
 //USER ROUTES
-router.post("/search", getFlights);
 
 router.post("/user" , newUser);
 
-router.post("/booking/:flightid", bookFlightById)
+router.post('/user/login',userLogin)
 
-router.post("/ticket/:pnr", ticketDataByPNR);
+router.post("/search", checkUserToken, getFlights);
 
-router.post("/booking/history/:email", userBookingHistory);
+router.post("/booking/:flightid", checkUserToken, bookFlightById)
+
+router.get("/ticket/:pnr", checkUserToken, ticketDataByPNR);
+
+router.get("/booking/history/:email", checkUserToken, userBookingHistory);
+
+router.delete("/booking/cancel/:pnr", checkUserToken, cancelTicket)
 
 
 

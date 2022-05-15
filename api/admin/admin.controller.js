@@ -2,8 +2,8 @@ const {
   createAdmin,
   getAdminByEmail,
   //logout function
+
   airlineRegister,
-  airlineStatus,
   airlineBlock,
   addFlight,
   scheduleFlight,
@@ -41,39 +41,43 @@ module.exports = {
 
 
   //login 
-  login: (req, res) => {
+  adminLogin: (req, res) => {
     const body = req.body;
+
     getAdminByEmail(body.email, (err, results) => {
-      if (err) {
-        console.log(err);
-      }
-      if (!results) {
-        return res.json({
-          sucess: 0,
-          message: "Invalid email or password",
-        });
-      }
-      const result = compareSync(body.password, results.password);
-      if (result) {
-        results.password = undefined;
-        const jsontoken = sign({ result: results }, "qwe1234", {
-          expiresIn: "1h",
-        });
-        return res.json({
-          sucess: 1,
-          message: "Login sucessful",
-          token: jsontoken,
-        });
-      } else {
-        return res.json({
-          sucess: 0,
-          message: "Invalid email or password",
-        });
-      }
+          if (err) {
+            console.log(err);
+          }
+          if (!results) {
+            return res.json({
+              sucess: 0,
+              message: "Invalid email or password",
+            });
+          }
+          const result = compareSync(body.password, results.password);
+          
+          if (result) 
+          {
+              results.password = undefined;
+              const jsontoken = sign({ result: results, role:"Admin"}, process.env.JWT_ALGO,
+                {expiresIn: "30m"});
+                
+              return res.json({
+                sucess: 1,
+                message: "Login sucessful",
+                token: jsontoken,
+              });
+          } 
+          else 
+          {
+              return res.json({
+                sucess: 0,
+                message: "Invalid email or password",
+              });
+          }
     });
   },
 
-  //logout
 
   //add Airline
   airlineRegister: (req,res)=>{
@@ -128,19 +132,6 @@ module.exports = {
   //add a flight
   addFlight: (req,res) =>{
     const body = req.body;
-
-    // const airlineName = body.airline;
-    // var status;
-    // airlineStatus(airlineName, (err,results)=>{
-    //   if(err)
-    //   console.log(err);
-
-    //   return status = results;
-
-    // })
-    // console.log("line 141",status)
-
-    //json data type is not given this time
     
     addFlight(body, (err,results)=>{
       if(err){

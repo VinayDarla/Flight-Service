@@ -9,4 +9,6 @@ app.use("/api/v1.0/flight", adminRouter);
 
 app.listen(process.env.APP_PORT, () => {
     console.log(`Server up and running on port ${process.env.APP_PORT}`);
+    //javascript get current date method
+    //console.log(Date());
 })

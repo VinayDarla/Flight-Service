@@ -1,5 +1,9 @@
-admin: Venky
+admin: Venkatesh
 password: vd789
+
+user1
+name:Vinay 
+password:vinay
 
 //users booking table
 CREATE TABLE `users`.`users_data` (
@@ -18,3 +22,5 @@ CREATE TABLE `users`.`users_data` (
   `email` VARCHAR(45) NULL,
   `password` VARCHAR(200) NULL,
   PRIMARY KEY (`name`));
+
+  
