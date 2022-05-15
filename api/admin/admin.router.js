@@ -13,7 +13,9 @@ const {
     newUser,
     //login,
     getFlights,
-    bookFlightById
+    bookFlightById,
+    ticketDataByPNR,
+    userBookingHistory
   } = require("../users/user.controller");
 
 
@@ -39,6 +41,12 @@ router.patch("/airline/inventory/update", scheduleFlight);
 router.post("/search", getFlights);
 
 router.post("/user" , newUser);
+
+router.post("/booking/:flightid", bookFlightById)
+
+router.post("/ticket/:pnr", ticketDataByPNR);
+
+router.post("/booking/history/:email", userBookingHistory);
 
 
 

@@ -100,13 +100,13 @@ module.exports = {
   addFlight: (data, callback) =>{
     
     pool.query(
-      `INSERT into flights_data(flightNo, airline, fromPlace, toPlace, startDate, startTime, endDate, endTime, 
+      `INSERT into flights_data(flightNo, airline, airlineStatus,fromPlace, toPlace, startDate, startTime, endDate, endTime, 
         scheduledDays, instrumentUsed, premiumSeats, nonPremiumSeats, ticketCost, numOfRows, meals)
-        VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+        VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
         [
           data.flightNo,
           data.airline,
-          
+          data.airlineStatus,
           data.fromPlace,
           data.toPlace,
           data.startDate,
